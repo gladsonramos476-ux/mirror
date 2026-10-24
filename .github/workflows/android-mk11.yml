@@ -1,0 +1,70 @@
+name: Eden Android MK11 - Turnip Experimental
+
+on:
+  push:
+    branches:
+      - mk11-turnip-experimental
+    paths:
+      - src/video_core/renderer_vulkan/vk_pipeline_cache.cpp
+      - .github/workflows/android-mk11.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    if: github.repository == 'gladsonramos476-ux/mirror'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout source and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify experimental change
+        shell: bash
+        run: |
+          grep -Fq 'device.IsMoltenVK() || device.GetDriverID() == VK_DRIVER_ID_MESA_TURNIP' \
+            src/video_core/renderer_vulkan/vk_pipeline_cache.cpp || {
+              echo 'MK11 Turnip modification not found; aborting.'
+              exit 1
+            }
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Android build tools
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install \
+            'platforms;android-36' \
+            'build-tools;36.0.0' \
+            'ndk;28.2.13676358' \
+            'cmake;3.31.6'
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache pkg-config
+
+      - name: Build arm64 Android APK
+        shell: bash
+        run: |
+          chmod +x .ci/android/build.sh
+          .ci/android/build.sh -t standard -b RelWithDebInfo
+
+      - name: Upload test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: eden-mk11-turnip-experimental
+          path: |
+            artifacts/*.apk
+            artifacts/**/*.apk
+          if-no-files-found: error
+          retention-days: 7
