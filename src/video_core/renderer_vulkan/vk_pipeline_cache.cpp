@@ -251,7 +251,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
 
         info.dual_source_blend = key.state.attachment0_dual_source_blend != 0;
 
-        if (device.IsMoltenVK()) {
+        if (device.IsMoltenVK() || device.GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) { {
             for (size_t i = 0; i < 8; ++i) {
                 const auto format = static_cast<Tegra::RenderTargetFormat>(key.state.color_formats[i]);
                 const auto pixel_format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(format);
