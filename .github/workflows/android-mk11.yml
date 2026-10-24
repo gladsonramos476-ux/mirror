@@ -51,7 +51,7 @@ jobs:
             'ndk;28.2.13676358' \
             'cmake;3.31.6'
           sudo apt-get update
-                    sudo apt-get install -y glslang-tools ninja-build ccache pkg-config
+          sudo apt-get install -y glslang-tools ninja-build ccache pkg-config
           command -v glslangValidator
           glslangValidator --version
 
@@ -65,8 +65,6 @@ jobs:
             -Pnightly=false \
             --no-daemon
           test -f ../externals/generated/sdl/java/org/libsdl/app/SDL.java
-
-      - name: Build arm64 Android APK
 
       - name: Build arm64 Android APK
         shell: bash
