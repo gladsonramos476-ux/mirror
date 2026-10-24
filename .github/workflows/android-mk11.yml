@@ -64,8 +64,18 @@ jobs:
             -PYUZU_ANDROID_ARGS="-DUSE_CCACHE=false" \
             -Pnightly=false \
             --no-daemon
-          test -f ../externals/generated/sdl/java/org/libsdl/app/SDL.java
-
+                    SDL_JAVA=$(find "${GITHUB_WORKSPACE}/.cache/cpm" -type f \
+            -path '*/android-project/app/src/main/java/org/libsdl/app/SDL.java' \
+            -print -quit)
+          if [ -z "$SDL_JAVA" ]; then
+            echo "Erro: arquivos Java da SDL3 não encontrados"
+            exit 1
+          fi
+          SDL_TARGET="${GITHUB_WORKSPACE}/externals/generated/sdl/java/org/libsdl/app"
+          mkdir -p "$SDL_TARGET"
+          cp -v "$(dirname "$SDL_JAVA")"/*.java "$SDL_TARGET/"
+          test -s "$SDL_TARGET/SDL.java"
+          ls -lh "$SDL_TARGET"
       - name: Build arm64 Android APK
         shell: bash
         run: |
